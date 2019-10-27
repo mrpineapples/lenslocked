@@ -23,8 +23,16 @@ func faq(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1 style=\"color:red\">This is the faq page</h1>")
 }
 
+// Exercise 2 - custom gorilla 404 page
+func notFound(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, "<h1>We could not find the page you were looking for &#128546;</h1>")
+}
+
 func main() {
 	r := mux.NewRouter()
+	r.NotFoundHandler = http.HandlerFunc(notFound)
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
 	r.HandleFunc("/faq", faq)
