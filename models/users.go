@@ -10,7 +10,20 @@ import (
 var (
 	// ErrNotFound is returned when a resource is not found in the database.
 	ErrNotFound = errors.New("models: resource not found")
+
+	// ErrInvalidID is returned when an invalid ID is provided.
+	ErrInvalidID = errors.New("models: ID provided was invalid")
 )
+
+// first finds the first item in the query and place it into dst.
+// dst should be a pointer.
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
+	}
+	return err
+}
 
 // NewUserService provides a UserService object to peform user database actions.
 func NewUserService(connectionInfo string) (*UserService, error) {
@@ -30,23 +43,39 @@ type UserService struct {
 	db *gorm.DB
 }
 
-// ByID will look up a user by the provided ID.
+// ByID will look up and return a user by the provided ID.
 func (us *UserService) ByID(id uint) (*User, error) {
 	var user User
-	err := us.db.Where("id = ?", id).First(&user).Error
-	switch err {
-	case nil:
-		return &user, nil
-	case gorm.ErrRecordNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
+	db := us.db.Where("id = ?", id)
+	err := first(db, &user)
+	return &user, err
 }
 
-// Create will add the user to the database
+// ByEmail will look up and return a user by the provided email.
+func (us *UserService) ByEmail(email string) (*User, error) {
+	var user User
+	db := us.db.Where("email = ?", email)
+	err := first(db, &user)
+	return &user, err
+}
+
+// Create will add the user to the database.
 func (us *UserService) Create(user *User) error {
 	return us.db.Create(user).Error
+}
+
+// Update will update the user with the provided user object.
+func (us *UserService) Update(user *User) error {
+	return us.db.Save(user).Error
+}
+
+// Delete will delete the user with the provided ID.
+func (us *UserService) Delete(id uint) error {
+	if id == 0 {
+		return ErrInvalidID
+	}
+	user := User{Model: gorm.Model{ID: id}}
+	return us.db.Delete(&user).Error
 }
 
 // Close closes the UserService database connection.
