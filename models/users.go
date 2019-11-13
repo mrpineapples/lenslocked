@@ -16,6 +16,8 @@ var (
 	ErrInvalidID = errors.New("models: ID provided was invalid")
 )
 
+const userPwPepper = "xK@dst6Dh*4ZeFBe"
+
 // first finds the first item in the query and place it into dst.
 // dst should be a pointer.
 func first(db *gorm.DB, dst interface{}) error {
@@ -62,7 +64,8 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 
 // Create will add the user to the database.
 func (us *UserService) Create(user *User) error {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	pwBytes := []byte(user.Password + userPwPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return nil
 	}
