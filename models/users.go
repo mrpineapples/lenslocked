@@ -14,11 +14,14 @@ var (
 
 	// ErrInvalidID is returned when an invalid ID is provided.
 	ErrInvalidID = errors.New("models: ID provided was invalid")
+
+	// ErrInvalidPassword is returned when a password match is not found in the database.
+	ErrInvalidPassword = errors.New("models: incorrect password provided")
 )
 
 const userPwPepper = "xK@dst6Dh*4ZeFBe"
 
-// first finds the first item in the query and place it into dst.
+// first finds the first item in the query and places it into dst;
 // dst should be a pointer.
 func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
@@ -41,7 +44,7 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	}, nil
 }
 
-// UserService is a utility to perform actions for a user
+// UserService is a utility to perform actions for a user.
 type UserService struct {
 	db *gorm.DB
 }
@@ -60,6 +63,25 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	db := us.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
+}
+
+// Authenticate verifies if a user's email and password exists.
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		default:
+			return nil, err
+		}
+	}
+	return foundUser, nil
 }
 
 // Create will add the user to the database.
