@@ -163,10 +163,15 @@ func (uv *userValidator) Update(user *User) error {
 
 // Delete will delete the user with the provided ID.
 func (uv *userValidator) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID
+	var user User
+	user.ID = id
+
+	err := runUserValidatorFuncs(&user, uv.idGreaterThan(0))
+	if err != nil {
+		return err
 	}
-	return uv.UserDB.Delete(id)
+
+	return uv.UserDB.Delete(user.ID)
 }
 
 // bcryptPassword will hash a user's password if it exists.
@@ -207,6 +212,15 @@ func (uv *userValidator) setRememberIfNotSet(user *User) error {
 
 	user.Remember = token
 	return nil
+}
+
+func (uv *userValidator) idGreaterThan(n uint) userValidatorFunc {
+	return userValidatorFunc(func(user *User) error {
+		if user.ID <= n {
+			return ErrInvalidID
+		}
+		return nil
+	})
 }
 
 // Test that userGorm fulfills the UserDB interface.
