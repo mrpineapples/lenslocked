@@ -26,6 +26,17 @@ var (
 const userPwPepper = "u3lx@T!I8gdKLwsB*q8TsCVxI0LW50rF"
 const hmacSecretKey = "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#"
 
+// User represents the user model stored in our database.
+type User struct {
+	gorm.Model
+	Name         string
+	Email        string `gorm:"not null;unique_index"`
+	Password     string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"-"`
+	RememberHash string `gorm:"not null;unique_index"`
+}
+
 // UserDB is used to interact with the users database.
 type UserDB interface {
 	// Methods for querying a single user
@@ -46,39 +57,61 @@ type UserDB interface {
 	DestructiveReset() error
 }
 
-// first finds the first item in the query and places it into dst;
-// dst should be a pointer.
-func first(db *gorm.DB, dst interface{}) error {
-	err := db.First(dst).Error
-	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
-	}
-	return err
+// UserService is a set of methods used to work with the user model.
+type UserService interface {
+	// Authenticate will verify that the user's email and password are
+	// valid in the database; If verified, the user will be returned.
+	Authenticate(email, password string) (*User, error)
+	UserDB
 }
 
 // NewUserService provides a UserService object to peform user database actions.
-func NewUserService(connectionInfo string) (*UserService, error) {
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	return &UserService{
+	return &userService{
 		UserDB: &userValidator{
 			UserDB: ug,
 		},
 	}, nil
 }
 
-// UserService is a utility to perform actions for a user.
-type UserService struct {
+// Test that userService fulfills the UserService interface.
+var _ UserService = &userService{}
+
+type userService struct {
 	UserDB
 }
+
+// Authenticate verifies if a user's email and password exists.
+func (us *userService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		default:
+			return nil, err
+		}
+	}
+	return foundUser, nil
+}
+
+// Test that userValidator fulfills the UserDB interface.
+var _ UserDB = &userValidator{}
 
 type userValidator struct {
 	UserDB
 }
 
-// Test that userGorm fulfills th UserDB interface
+// Test that userGorm fulfills the UserDB interface.
 var _ UserDB = &userGorm{}
 
 type userGorm struct {
@@ -123,25 +156,6 @@ func (ug *userGorm) ByRemember(token string) (*User, error) {
 	db := ug.db.Where("remember_hash = ?", rememberHash)
 	err := first(db, &user)
 	return &user, err
-}
-
-// Authenticate verifies if a user's email and password exists.
-func (us *UserService) Authenticate(email, password string) (*User, error) {
-	foundUser, err := us.ByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
-	if err != nil {
-		switch err {
-		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, ErrInvalidPassword
-		default:
-			return nil, err
-		}
-	}
-	return foundUser, nil
 }
 
 // Create will add the user to the database.
@@ -201,13 +215,12 @@ func (ug *userGorm) AutoMigrate() error {
 	return ug.db.AutoMigrate(&User{}).Error
 }
 
-// User represents a user's information.
-type User struct {
-	gorm.Model
-	Name         string
-	Email        string `gorm:"not null;unique_index"`
-	Password     string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	Remember     string `gorm:"-"`
-	RememberHash string `gorm:"not null;unique_index"`
+// first finds the first item in the query and places it into dst;
+// dst should be a pointer.
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
+	}
+	return err
 }
