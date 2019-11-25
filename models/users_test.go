@@ -19,7 +19,6 @@ func testingUserService() (*UserService, error) {
 	if err != nil {
 		return nil, err
 	}
-	us.db.LogMode(false)
 	// Clear the users table between tests
 	us.DestructiveReset()
 	return us, nil
