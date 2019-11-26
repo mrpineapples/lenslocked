@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strings"
 
 	// This needs to be imported to initialize the gorm postgres package
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -126,6 +127,21 @@ type userValidator struct {
 	hmac hash.HMAC
 }
 
+// ByEmail will normalize the email before querying the database
+// in the UserDB layer.
+func (uv *userValidator) ByEmail(email string) (*User, error) {
+	user := User{
+		Email: email,
+	}
+
+	err := runUserValidatorFuncs(&user, uv.normalizeEmail)
+	if err != nil {
+		return nil, err
+	}
+
+	return uv.UserDB.ByEmail(user.Email)
+}
+
 // ByRemember hashes the remember token and then calls ByRemember
 // on the subsequent UserDB layer.
 func (uv *userValidator) ByRemember(token string) (*User, error) {
@@ -143,7 +159,12 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 
 // Create hashes the user's password and sets a remember token on the user.
 func (uv *userValidator) Create(user *User) error {
-	err := runUserValidatorFuncs(user, uv.bcryptPassword, uv.setRememberIfNotSet, uv.hmacRemember)
+	err := runUserValidatorFuncs(user,
+		uv.bcryptPassword,
+		uv.setRememberIfNotSet,
+		uv.hmacRemember,
+		uv.normalizeEmail,
+	)
 	if err != nil {
 		return err
 	}
@@ -153,7 +174,11 @@ func (uv *userValidator) Create(user *User) error {
 
 // Update will hash a user's password and remember token.
 func (uv *userValidator) Update(user *User) error {
-	err := runUserValidatorFuncs(user, uv.bcryptPassword, uv.hmacRemember)
+	err := runUserValidatorFuncs(user,
+		uv.bcryptPassword,
+		uv.hmacRemember,
+		uv.normalizeEmail,
+	)
 	if err != nil {
 		return err
 	}
@@ -221,6 +246,12 @@ func (uv *userValidator) idGreaterThan(n uint) userValidatorFunc {
 		}
 		return nil
 	})
+}
+
+func (uv *userValidator) normalizeEmail(user *User) error {
+	user.Email = strings.ToLower(user.Email)
+	user.Email = strings.TrimSpace(user.Email)
+	return nil
 }
 
 // Test that userGorm fulfills the UserDB interface.
