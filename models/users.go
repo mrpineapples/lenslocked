@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 
@@ -12,38 +11,6 @@ import (
 	"github.com/mrpineapples/lenslocked/hash"
 	"github.com/mrpineapples/lenslocked/rand"
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	// ErrNotFound is returned when a resource is not found in the database.
-	ErrNotFound = errors.New("models: resource not found")
-
-	// ErrIDInvalid is returned when an invalid ID is provided.
-	ErrIDInvalid = errors.New("models: ID provided was invalid")
-
-	// ErrPasswordIncorrect is returned when a password match is not found in the database.
-	ErrPasswordIncorrect = errors.New("models: incorrect password provided")
-
-	// ErrEmailRequired is returned when an email address is not provided on user creation.
-	ErrEmailRequired = errors.New("models: email address is required")
-
-	// ErrEmailInvalid is returned when an email does not match a valid email format.
-	ErrEmailInvalid = errors.New("models: email address is not valid")
-
-	// ErrEmailTaken is returned when an email already exists in the database.
-	ErrEmailTaken = errors.New("models: email address is already taken")
-
-	// ErrPasswordRequired is returned when a password is not provided.
-	ErrPasswordRequired = errors.New("models: password is required")
-
-	// ErrPasswordTooShort is returned when a password is less than 8 characters.
-	ErrPasswordTooShort = errors.New("models: password must be at least 8 characters")
-
-	// ErrRememberTooShort is returned when a remember token is less than 32 bytes.
-	ErrRememberTooShort = errors.New("models: remember token must be at least 32 bytes")
-
-	// ErrRememberRequired is returned when a remember token is not provided.
-	ErrRememberRequired = errors.New("models: remember token is required")
 )
 
 const minPwLength = 8
