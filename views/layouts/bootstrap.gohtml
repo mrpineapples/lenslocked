@@ -7,10 +7,12 @@
     </head>
 
     <body>
-        {{template "navbar"}}
+        {{template "navbar"}}    
         <div class="container-fluid">
-            {{template "alert"}}
-            {{template "yield" .}}
+            {{if .Alert}}
+                {{template "alert" .Alert}}
+            {{end}}
+            {{template "yield" .Yield}}
 
             {{template "footer"}}
         </div>
