@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 )
 
+// Size of remember token in bytes.
 const RememberTokenBytes = 32
 
 // Bytes will generate n random bytes.
@@ -15,6 +16,15 @@ func Bytes(n int) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+// NBytes returns the number of bytes used in the base64 URL encoded string.
+func NBytes(base64String string) (int, error) {
+	b, err := base64.URLEncoding.DecodeString(base64String)
+	if err != nil {
+		return -1, err
+	}
+	return len(b), nil
 }
 
 // String generates a byte slice of size nBytes and returns
