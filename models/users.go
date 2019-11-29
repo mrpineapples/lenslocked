@@ -57,16 +57,13 @@ type UserService interface {
 }
 
 // NewUserService provides a UserService object to peform user database actions.
-func NewUserService(connectionInfo string) (UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 // Test that userService fulfills the UserService interface.
@@ -355,18 +352,6 @@ var _ UserDB = &userGorm{}
 
 type userGorm struct {
 	db *gorm.DB
-}
-
-func newUserGorm(connectionInfo string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	// TODO: remove this
-	db.LogMode(true)
-	return &userGorm{
-		db: db,
-	}, nil
 }
 
 // ByID will look up and return a user by the provided ID.

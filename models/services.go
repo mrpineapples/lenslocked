@@ -9,7 +9,9 @@ func NewServices(connectionInfo string) (*Services, error) {
 	}
 	// TODO: remove this
 	db.LogMode(true)
-	return &Services{}, nil
+	return &Services{
+		User: NewUserService(db),
+	}, nil
 }
 
 type Services struct {
