@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mrpineapples/lenslocked/controllers"
+	"github.com/mrpineapples/lenslocked/middleware"
 	"github.com/mrpineapples/lenslocked/models"
 )
 
@@ -30,6 +31,9 @@ func main() {
 	usersC := controllers.NewUsers(services.User)
 	galleriesC := controllers.NewGalleries(services.Gallery)
 
+	// lint can be ignored for middleware
+	requireUserMw := middleware.RequireUser{services.User}
+
 	r := mux.NewRouter()
 	r.Handle("/", staticC.Home).Methods("GET")
 	r.Handle("/contact", staticC.Contact).Methods("GET")
@@ -40,8 +44,8 @@ func main() {
 	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
 
 	// Gallery routes
-	r.Handle("/galleries/new", galleriesC.NewView).Methods("GET")
-	r.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
+	r.Handle("/galleries/new", requireUserMw.Apply(galleriesC.NewView)).Methods("GET")
+	r.HandleFunc("/galleries", requireUserMw.ApplyFn(galleriesC.Create)).Methods("POST")
 
 	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
 	http.ListenAndServe(":8000", r)
