@@ -47,6 +47,7 @@ func main() {
 	// Gallery routes
 	r.Handle("/galleries/new", requireUserMw.Apply(galleriesC.NewView)).Methods("GET")
 	r.HandleFunc("/galleries", requireUserMw.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}/edit", requireUserMw.ApplyFn(galleriesC.Edit)).Methods("GET")
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGalleryName)
 
 	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
