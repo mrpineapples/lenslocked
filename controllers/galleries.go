@@ -95,8 +95,17 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gallery.Title = form.Title
-	// Create and call the update method on => g.service.Update
-	fmt.Fprintln(w, gallery)
+	err = g.service.Update(gallery)
+	if err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, vd)
+	}
+
+	vd.Alert = &views.Alert{
+		Level:   views.AlertLevelSuccess,
+		Message: "Gallery successfully updated!",
+	}
+	g.EditView.Render(w, vd)
 }
 
 // Create is used to process the gallery form and creates a new gallery.
