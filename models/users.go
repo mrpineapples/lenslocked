@@ -387,13 +387,3 @@ func (ug *userGorm) Delete(id uint) error {
 	user := User{Model: gorm.Model{ID: id}}
 	return ug.db.Delete(&user).Error
 }
-
-// first finds the first item in the query and places it into dst;
-// dst should be a pointer.
-func first(db *gorm.DB, dst interface{}) error {
-	err := db.First(dst).Error
-	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
-	}
-	return err
-}

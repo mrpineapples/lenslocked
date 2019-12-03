@@ -27,14 +27,15 @@ func main() {
 	defer services.Close()
 	services.AutoMigrate()
 
+	// declare router first so controllers can use it
+	r := mux.NewRouter()
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(services.User)
-	galleriesC := controllers.NewGalleries(services.Gallery)
+	galleriesC := controllers.NewGalleries(services.Gallery, r)
 
 	// lint can be ignored for middleware
 	requireUserMw := middleware.RequireUser{services.User}
 
-	r := mux.NewRouter()
 	r.Handle("/", staticC.Home).Methods("GET")
 	r.Handle("/contact", staticC.Contact).Methods("GET")
 	r.Handle("/signup", usersC.NewView).Methods("GET")
@@ -46,6 +47,7 @@ func main() {
 	// Gallery routes
 	r.Handle("/galleries/new", requireUserMw.Apply(galleriesC.NewView)).Methods("GET")
 	r.HandleFunc("/galleries", requireUserMw.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGalleryName)
 
 	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
 	http.ListenAndServe(":8000", r)
