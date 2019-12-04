@@ -28,4 +28,22 @@
     </div>
     <button type="submit" class="btn btn-primary">Update</button>
 </form>
+
+<form style="margin-top: -35px;" class="text-right" action="/galleries/{{.ID}}/delete" method="POST">
+    <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+
+<script>
+var deleteBtn = document.querySelector(".btn-danger")
+var confirmDelete = function(e) {
+    var confirmMsg = "Are you sure you want to delete? This action cannot be undone."
+    if (confirm(confirmMsg)) {
+        return true
+    } else {
+        e.preventDefault()
+        return false
+    }
+}
+deleteBtn.addEventListener("click", confirmDelete)
+</script>
 {{end}}
