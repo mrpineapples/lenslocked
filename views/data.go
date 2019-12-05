@@ -1,5 +1,7 @@
 package views
 
+import "github.com/mrpineapples/lenslocked/models"
+
 // Alert variables that are used for error handling
 // or giving users visual cues.
 const (
@@ -21,6 +23,7 @@ type Alert struct {
 // Data is the top level structure that views expect data to come in.
 type Data struct {
 	Alert *Alert
+	User  *models.User
 	Yield interface{}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/mrpineapples/lenslocked/views"
 )
 
+// Named routes
 const (
 	ShowGalleryName = "show_gallery"
 	EditGalleryName = "edit_gallery"
@@ -53,8 +54,7 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 
 	var vd views.Data
 	vd.Yield = galleries
-
-	g.IndexView.Render(w, vd)
+	g.IndexView.Render(w, r, vd)
 }
 
 // Show is used to show users their respective galleries.
@@ -67,7 +67,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	var vd views.Data
 	vd.Yield = gallery
-	g.ShowView.Render(w, vd)
+	g.ShowView.Render(w, r, vd)
 }
 
 // Edit is used to show the user a form which they can use to edit a gallery.
@@ -86,7 +86,7 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 
 	var vd views.Data
 	vd.Yield = gallery
-	g.EditView.Render(w, vd)
+	g.EditView.Render(w, r, vd)
 }
 
 // Update is used to update a gallery with the data from the edit form.
@@ -109,7 +109,7 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	if err := parseForm(r, &form); err != nil {
 		log.Println(err)
 		vd.SetAlert(err)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 
@@ -117,14 +117,14 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	err = g.service.Update(gallery)
 	if err != nil {
 		vd.SetAlert(err)
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 	}
 
 	vd.Alert = &views.Alert{
 		Level:   views.AlertLevelSuccess,
 		Message: "Gallery successfully updated!",
 	}
-	g.EditView.Render(w, vd)
+	g.EditView.Render(w, r, vd)
 }
 
 // Create is used to process the gallery form and creates a new gallery.
@@ -135,7 +135,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	if err := parseForm(r, &form); err != nil {
 		log.Println(err)
 		vd.SetAlert(err)
-		g.NewView.Render(w, vd)
+		g.NewView.Render(w, r, vd)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := g.service.Create(&gallery); err != nil {
 		vd.SetAlert(err)
-		g.NewView.Render(w, vd)
+		g.NewView.Render(w, r, vd)
 		return
 	}
 
@@ -183,7 +183,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		vd.SetAlert(err)
 		vd.Yield = gallery
-		g.EditView.Render(w, vd)
+		g.EditView.Render(w, r, vd)
 		return
 	}
 

@@ -26,15 +26,25 @@
             value="{{.Title}}"
         />
     </div>
-    <button type="submit" class="btn btn-primary">Update</button>
+    <button type="submit" class="btn btn-primary" id="update-btn">Update</button>
 </form>
 
 <form style="margin-top: -35px;" class="text-right" action="/galleries/{{.ID}}/delete" method="POST">
-    <button type="submit" class="btn btn-danger">Delete</button>
+    <button type="submit" class="btn btn-danger" id="delete-btn">Delete</button>
 </form>
 
 <script>
-var deleteBtn = document.querySelector(".btn-danger")
+var editInput = document.querySelector("#title")
+var ogValue = editInput.value
+var updateBtn = document.querySelector("#update-btn")
+var deleteBtn = document.querySelector("#delete-btn")
+
+var validateUpdate = function(e) {
+    if (editInput.value === ogValue) {
+        e.preventDefault()
+        alert("Title must be different")
+    }
+}
 var confirmDelete = function(e) {
     var confirmMsg = "Are you sure you want to delete? This action cannot be undone."
     if (confirm(confirmMsg)) {
@@ -44,6 +54,8 @@ var confirmDelete = function(e) {
         return false
     }
 }
+
+updateBtn.addEventListener("click", validateUpdate)
 deleteBtn.addEventListener("click", confirmDelete)
 </script>
 {{end}}

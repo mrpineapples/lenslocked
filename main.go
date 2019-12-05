@@ -34,7 +34,10 @@ func main() {
 	galleriesC := controllers.NewGalleries(services.Gallery, r)
 
 	// lint can be ignored for middleware
-	requireUserMw := middleware.RequireUser{services.User}
+	userMw := middleware.User{
+		UserService: services.User,
+	}
+	requireUserMw := middleware.RequireUser{userMw}
 
 	r.Handle("/", staticC.Home).Methods("GET")
 	r.Handle("/contact", staticC.Contact).Methods("GET")
@@ -42,7 +45,6 @@ func main() {
 	r.HandleFunc("/signup", usersC.Create).Methods("POST")
 	r.Handle("/login", usersC.LoginView).Methods("GET")
 	r.HandleFunc("/login", usersC.Login).Methods("POST")
-	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
 
 	// Gallery routes
 	r.HandleFunc("/galleries", requireUserMw.ApplyFn(galleriesC.Index)).Methods("GET")
@@ -54,5 +56,5 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/delete", requireUserMw.ApplyFn(galleriesC.Delete)).Methods("POST")
 
 	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
-	http.ListenAndServe(":8000", r)
+	http.ListenAndServe(":8000", userMw.Apply(r))
 }
