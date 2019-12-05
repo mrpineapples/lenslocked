@@ -1,61 +1,105 @@
 {{define "yield"}}
 <div class="row">
-    <div class="col-md-6 col-md-offset-3">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title">Edit your gallery</h3>
-            </div>
-            <div class="panel-body">
-                {{template "editGalleryForm" .}}
-            </div>
-        </div>
+    <div class="col-md-10 col-md-offset-1">
+        <h2>Edit your gallery</h2>
+        <hr>
+    </div>
+    <div class="col-md-12">
+        {{template "editGalleryForm" .}}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-1">
+        <label class="control-label pull-right">Images</label>
+    </div>
+    <div class="col-md-10">
+        {{template "galleryImages" .}}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {{template "uploadImageForm" .}}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <h3>Dangerous</h3>
+        <hr>
+    </div>
+    <div class="col-md-12">
+        {{template "deleteGalleryBtn" .}}
     </div>
 </div>
 {{end}}
 
 {{define "editGalleryForm"}}
-<form action="/galleries/{{.ID}}/update" method="POST">
+<form class="form-horizontal" action="/galleries/{{.ID}}/update" method="POST">
     <div class="form-group">
-        <label for="title">Title</label>
-        <input 
-            type="text" 
-            name="title"
-            class="form-control" 
-            id="title" 
-            placeholder="Give your gallery a name"
-            value="{{.Title}}"
-        />
+        <label for="title" class="col-md-1 control-label">Title</label>
+        <div class="col-md-10">
+            <input type="text" name="title" class="form-control" id="title" placeholder="Give your gallery a name" value="{{.Title}}" />
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-default" id="save-btn">Save</button>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary" id="update-btn">Update</button>
-</form>
-
-<form style="margin-top: -35px;" class="text-right" action="/galleries/{{.ID}}/delete" method="POST">
-    <button type="submit" class="btn btn-danger" id="delete-btn">Delete</button>
 </form>
 
 <script>
-var editInput = document.querySelector("#title")
-var ogValue = editInput.value
-var updateBtn = document.querySelector("#update-btn")
-var deleteBtn = document.querySelector("#delete-btn")
+    var editInput = document.querySelector("#title")
+    var ogValue = editInput.value
+    var saveBtn = document.querySelector("#save-btn")
 
-var validateUpdate = function(e) {
-    if (editInput.value === ogValue) {
-        e.preventDefault()
-        alert("Title must be different")
+    var validateUpdate = function(e) {
+        if (editInput.value === ogValue) {
+            e.preventDefault()
+            alert("Title must be different")
+        }
     }
-}
-var confirmDelete = function(e) {
-    var confirmMsg = "Are you sure you want to delete? This action cannot be undone."
-    if (confirm(confirmMsg)) {
-        return true
-    } else {
-        e.preventDefault()
-        return false
-    }
-}
-
-updateBtn.addEventListener("click", validateUpdate)
-deleteBtn.addEventListener("click", confirmDelete)
+    saveBtn.addEventListener("click", validateUpdate)
 </script>
+{{end}}
+
+{{define "deleteGalleryBtn"}}
+<form class="form-horizontal" action="/galleries/{{.ID}}/delete" method="POST">
+    <div class="form-group">
+        <div class="col-md-10 col-md-offset-1">
+            <button type="submit" class="btn btn-danger" id="delete-btn">Delete</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    var deleteBtn = document.querySelector("#delete-btn")
+    var confirmDelete = function(e) {
+        var confirmMsg = "Are you sure you want to delete? This action cannot be undone."
+        if (confirm(confirmMsg)) {
+            return true
+        } else {
+            e.preventDefault()
+            return false
+        }
+    }
+    deleteBtn.addEventListener("click", confirmDelete)
+</script>
+{{end}}
+
+{{define "uploadImageForm"}}
+<form class="form-horizontal" action="/galleries/{{.ID}}/images" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="images" class="col-md-1 control-label">Add Images</label>
+        <div class="col-md-10">
+            <input type="file" id="images" name="images" multiple>
+            <p class="help-block">Images must be .jpg, .jpeg, or .png</p>
+            <button type="submit" class="btn btn-default" id="upload-btn">Upload</button>
+        </div>
+    </div>
+</form>
+{{end}}
+
+{{define "galleryImages"}}
+<p>Coming soon...</p>
 {{end}}
