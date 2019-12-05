@@ -14,28 +14,47 @@ import (
 
 const (
 	ShowGalleryName = "show_gallery"
+	EditGalleryName = "edit_gallery"
 )
 
 func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
-		NewView:  views.NewView("bootstrap", "galleries/new"),
-		ShowView: views.NewView("bootstrap", "galleries/show"),
-		EditView: views.NewView("bootstrap", "galleries/edit"),
-		service:  gs,
-		router:   r,
+		IndexView: views.NewView("bootstrap", "galleries/index"),
+		NewView:   views.NewView("bootstrap", "galleries/new"),
+		ShowView:  views.NewView("bootstrap", "galleries/show"),
+		EditView:  views.NewView("bootstrap", "galleries/edit"),
+		service:   gs,
+		router:    r,
 	}
 }
 
 type Galleries struct {
-	NewView  *views.View
-	ShowView *views.View
-	EditView *views.View
-	service  models.GalleryService
-	router   *mux.Router
+	IndexView *views.View
+	NewView   *views.View
+	ShowView  *views.View
+	EditView  *views.View
+	service   models.GalleryService
+	router    *mux.Router
 }
 
 type GalleryForm struct {
 	Title string `schema:"title"`
+}
+
+// Index renders the default view where a user can view all their galleries.
+// GET /galleries
+func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+	galleries, err := g.service.ByUserID(user.ID)
+	if err != nil {
+		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
+		return
+	}
+
+	var vd views.Data
+	vd.Yield = galleries
+
+	g.IndexView.Render(w, vd)
 }
 
 // Show is used to show users their respective galleries.
@@ -136,7 +155,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := g.router.Get(ShowGalleryName).URL("id", fmt.Sprint(gallery.ID))
+	url, err := g.router.Get(EditGalleryName).URL("id", fmt.Sprint(gallery.ID))
 	if err != nil {
 		// TODO: make this go to the index page
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -145,7 +164,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
-// Delete is used to delete a gallery with the data from the edit form.
+// Delete is used to delete a gallery by its ID.
 // POST /galleries/:id/delete
 func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	gallery, err := g.galleryByID(w, r)
@@ -168,8 +187,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: redirect to index page
-	fmt.Fprintln(w, "successfully deleted!")
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
