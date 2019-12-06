@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -22,24 +20,26 @@ const (
 	maxMultipartMem = 5 << 20 // 5 megabytes
 )
 
-func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
+func NewGalleries(gs models.GalleryService, is models.ImageService, r *mux.Router) *Galleries {
 	return &Galleries{
-		IndexView: views.NewView("bootstrap", "galleries/index"),
-		NewView:   views.NewView("bootstrap", "galleries/new"),
-		ShowView:  views.NewView("bootstrap", "galleries/show"),
-		EditView:  views.NewView("bootstrap", "galleries/edit"),
-		service:   gs,
-		router:    r,
+		IndexView:  views.NewView("bootstrap", "galleries/index"),
+		NewView:    views.NewView("bootstrap", "galleries/new"),
+		ShowView:   views.NewView("bootstrap", "galleries/show"),
+		EditView:   views.NewView("bootstrap", "galleries/edit"),
+		service:    gs,
+		imgService: is,
+		router:     r,
 	}
 }
 
 type Galleries struct {
-	IndexView *views.View
-	NewView   *views.View
-	ShowView  *views.View
-	EditView  *views.View
-	service   models.GalleryService
-	router    *mux.Router
+	IndexView  *views.View
+	NewView    *views.View
+	ShowView   *views.View
+	EditView   *views.View
+	service    models.GalleryService
+	imgService models.ImageService
+	router     *mux.Router
 }
 
 type GalleryForm struct {
@@ -161,7 +161,6 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 
 	url, err := g.router.Get(EditGalleryName).URL("id", fmt.Sprint(gallery.ID))
 	if err != nil {
-		// TODO: make this go to the index page
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -182,19 +181,9 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: parse multipart form
 	var vd views.Data
 	vd.Yield = gallery
 	err = r.ParseMultipartForm(maxMultipartMem)
-	if err != nil {
-		vd.SetAlert(err)
-		g.EditView.Render(w, r, vd)
-		return
-	}
-
-	// create directory that will hold our images.
-	galleryPath := fmt.Sprintf("images/galleries/%v/", gallery.ID)
-	err = os.MkdirAll(galleryPath, 0755)
 	if err != nil {
 		vd.SetAlert(err)
 		g.EditView.Render(w, r, vd)
@@ -212,17 +201,7 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		// create destination file
-		dst, err := os.Create(galleryPath + f.Filename)
-		if err != nil {
-			vd.SetAlert(err)
-			g.EditView.Render(w, r, vd)
-			return
-		}
-		defer dst.Close()
-
-		// copy uploaded data to destination file
-		_, err = io.Copy(dst, file)
+		err = g.imgService.Create(gallery.ID, file, f.Filename)
 		if err != nil {
 			vd.SetAlert(err)
 			g.EditView.Render(w, r, vd)
