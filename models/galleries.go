@@ -5,8 +5,9 @@ import "github.com/jinzhu/gorm"
 // Gallery represents a user's collection of images.
 type Gallery struct {
 	gorm.Model
-	UserID uint   `gorm:"not null;index"`
-	Title  string `gorm:"not null"`
+	UserID uint     `gorm:"not null;index"`
+	Title  string   `gorm:"not null"`
+	Images []string `gorm:"-"`
 }
 
 type GalleryService interface {

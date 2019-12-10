@@ -208,7 +208,14 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	fmt.Fprintln(w, "Files successfully uploaded!")
+
+	url, err := g.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 // Delete is used to delete a gallery by its ID.
@@ -256,6 +263,9 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		}
 		return nil, err
 	}
+
+	images, _ := g.imgService.ByGalleryID(gallery.ID)
+	gallery.Images = images
 
 	return gallery, nil
 }
