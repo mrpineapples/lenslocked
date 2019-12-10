@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -57,6 +58,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) 
 	var buf bytes.Buffer
 	err := v.Template.ExecuteTemplate(&buf, v.Layout, vd)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Something went wrong. If the problem persists, please contact us.", http.StatusInternalServerError)
 		return
 	}
