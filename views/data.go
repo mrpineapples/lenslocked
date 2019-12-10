@@ -1,6 +1,10 @@
 package views
 
-import "github.com/mrpineapples/lenslocked/models"
+import (
+	"log"
+
+	"github.com/mrpineapples/lenslocked/models"
+)
 
 // Alert variables that are used for error handling
 // or giving users visual cues.
@@ -34,6 +38,7 @@ func (d *Data) SetAlert(err error) {
 			Message: pubErr.Public(),
 		}
 	} else {
+		log.Println(err)
 		d.Alert = &Alert{
 			Level:   AlertLevelError,
 			Message: AlertMsgGeneric,

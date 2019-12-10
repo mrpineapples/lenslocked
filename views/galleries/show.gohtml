@@ -11,17 +11,11 @@
     {{range .ImagesSplitN 3}}
     <div class="col-md-4">
         {{range .}}
-        <a href="{{.}}">
-            <img src="{{.}}" class="thumbnail img-thumbnail">
+        <a href="{{.Path}}">
+            <img src="{{.Path}}" class="thumbnail img-thumbnail">
         </a>
         {{end}}
     </div>
     {{end}}
 </div>
-
-<style>
-    /* .thumbnail {
-        width: 100%;
-    } */
-</style>
 {{end}}
