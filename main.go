@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/mrpineapples/lenslocked/controllers"
 	"github.com/mrpineapples/lenslocked/middleware"
 	"github.com/mrpineapples/lenslocked/models"
+	"github.com/mrpineapples/lenslocked/rand"
 )
 
 const (
@@ -33,6 +35,13 @@ func main() {
 	usersC := controllers.NewUsers(services.User)
 	galleriesC := controllers.NewGalleries(services.Gallery, services.Image, r)
 
+	// TODO: Update this to be a config variable
+	isProd := false
+	b, err := rand.Bytes(32)
+	if err != nil {
+		panic(err)
+	}
+	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
 	// lint can be ignored for middleware
 	userMw := middleware.User{
 		UserService: services.User,
@@ -68,5 +77,5 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete", requireUserMw.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
 
 	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
-	http.ListenAndServe(":8000", userMw.Apply(r))
+	http.ListenAndServe(":8000", csrfMw(userMw.Apply(r)))
 }
