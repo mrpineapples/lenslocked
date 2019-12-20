@@ -1,0 +1,13 @@
+{
+    "port": 8000,
+    "env": "dev",
+    "pepper": "u3lx@T!I8gdKLwsB*q8TsCVxI0LW50rF",
+    "hmac_key": "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#",
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "user": "Michael",
+        "password": "not-necessary",
+        "name": "lenslocked_dev"
+    }
+}
