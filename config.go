@@ -33,8 +33,10 @@ func DefaultPosgresConfig() PostgresConfig {
 }
 
 type AppConfig struct {
-	Port int
-	Env  string
+	Port    int    `json:"port"`
+	Env     string `json:"env"`
+	Pepper  string `json:"pepper"`
+	HMACKey string `json:"hmac_key"`
 }
 
 func (ac AppConfig) IsProd() bool {
@@ -43,16 +45,9 @@ func (ac AppConfig) IsProd() bool {
 
 func DefaultConfig() AppConfig {
 	return AppConfig{
-		Port: 8000,
-		Env:  "dev",
+		Port:    8000,
+		Env:     "dev",
+		Pepper:  "u3lx@T!I8gdKLwsB*q8TsCVxI0LW50rF",
+		HMACKey: "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#",
 	}
 }
-
-// <!-- models/users.go -->
-// const userPwPepper = "u3lx@T!I8gdKLwsB*q8TsCVxI0LW50rF"
-// const hmacSecretKey = "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#"
-
-// <!-- models/services.go -->
-// db, err := gorm.Open("postgres", connectionInfo)
-// ...
-// db.LogMode(true)

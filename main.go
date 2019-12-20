@@ -15,7 +15,13 @@ import (
 func main() {
 	appConfig := DefaultConfig()
 	dbConfig := DefaultPosgresConfig()
-	services, err := models.NewServices(dbConfig.Dialect(), dbConfig.ConnectionInfo())
+	services, err := models.NewServices(
+		models.WithGorm(dbConfig.Dialect(), dbConfig.ConnectionInfo()),
+		models.WithLogMode(!appConfig.IsProd()),
+		models.WithUser(appConfig.Pepper, appConfig.HMACKey),
+		models.WithGallery(),
+		models.WithImage(),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +73,6 @@ func main() {
 	// route to delete individual images
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete", requireUserMw.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
 
-	// TODO: config this
 	fmt.Printf("Server running on port %[1]d visit: http://localhost:%[1]d/\n", appConfig.Port)
 	http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), csrfMw(userMw.Apply(r)))
 }
