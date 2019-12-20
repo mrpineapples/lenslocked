@@ -12,17 +12,10 @@ import (
 	"github.com/mrpineapples/lenslocked/rand"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "Michael"
-	password = "not-necessary"
-	dbname   = "lenslocked_dev"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	services, err := models.NewServices(psqlInfo)
+	appConfig := DefaultConfig()
+	dbConfig := DefaultPosgresConfig()
+	services, err := models.NewServices(dbConfig.Dialect(), dbConfig.ConnectionInfo())
 	if err != nil {
 		panic(err)
 	}
@@ -35,13 +28,11 @@ func main() {
 	usersC := controllers.NewUsers(services.User)
 	galleriesC := controllers.NewGalleries(services.Gallery, services.Image, r)
 
-	// TODO: Update this to be a config variable
-	isProd := false
 	b, err := rand.Bytes(32)
 	if err != nil {
 		panic(err)
 	}
-	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
+	csrfMw := csrf.Protect(b, csrf.Secure(appConfig.IsProd()))
 	// lint can be ignored for middleware
 	userMw := middleware.User{
 		UserService: services.User,
@@ -76,6 +67,7 @@ func main() {
 	// route to delete individual images
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete", requireUserMw.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
 
-	fmt.Println("Server running on port 8000 visit: http://localhost:8000/")
-	http.ListenAndServe(":8000", csrfMw(userMw.Apply(r)))
+	// TODO: config this
+	fmt.Printf("Server running on port %[1]d visit: http://localhost:%[1]d/\n", appConfig.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), csrfMw(userMw.Apply(r)))
 }

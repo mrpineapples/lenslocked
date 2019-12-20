@@ -4,9 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	// This needs to be imported to initialize the gorm postgres package
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-
 	"github.com/jinzhu/gorm"
 	"github.com/mrpineapples/lenslocked/hash"
 	"github.com/mrpineapples/lenslocked/rand"
@@ -14,6 +11,8 @@ import (
 )
 
 const minPwLength = 8
+
+// TODO: config this
 const userPwPepper = "u3lx@T!I8gdKLwsB*q8TsCVxI0LW50rF"
 const hmacSecretKey = "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#"
 

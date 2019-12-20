@@ -1,14 +1,20 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	// This needs to be imported to initialize the gorm postgres package
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 
-func NewServices(connectionInfo string) (*Services, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
+	"github.com/jinzhu/gorm"
+)
+
+func NewServices(dialect, connectionInfo string) (*Services, error) {
+	// TODO: config this
+	db, err := gorm.Open(dialect, connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: remove this
 	db.LogMode(true)
+
 	return &Services{
 		User:    NewUserService(db),
 		Gallery: NewGalleryService(db),
