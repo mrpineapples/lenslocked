@@ -1,6 +1,10 @@
-screencast.lens-locked.com {
+lens-locked.com {
     gzip
     proxy / localhost:8000 {
         transparent
     }
+}
+
+www.lens-locked.com {
+    redir https://lens-locked.com{uri}
 }
