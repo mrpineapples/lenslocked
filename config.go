@@ -42,6 +42,7 @@ type AppConfig struct {
 	Pepper   string         `json:"pepper"`
 	HMACKey  string         `json:"hmac_key"`
 	Database PostgresConfig `json:"database"`
+	Mailgun  MailgunConfig  `json:"mailgun"`
 }
 
 func (ac AppConfig) IsProd() bool {
@@ -56,6 +57,12 @@ func DefaultConfig() AppConfig {
 		HMACKey:  "yjqRz4166W6@RvFd#b59yGT6uSIsVJh#",
 		Database: DefaultPosgresConfig(),
 	}
+}
+
+type MailgunConfig struct {
+	APIKey       string `json:"api_key"`
+	PublicAPIKey string `json:"public_api_key"`
+	Domain       string `json:"domain"`
 }
 
 func LoadConfig(configReq bool) AppConfig {

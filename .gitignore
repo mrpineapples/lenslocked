@@ -21,3 +21,6 @@ lenslocked
 
 # Uploaded images directory
 images
+
+# config files
+.config.json

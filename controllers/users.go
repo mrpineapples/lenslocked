@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mrpineapples/lenslocked/context"
+	"github.com/mrpineapples/lenslocked/email"
 	"github.com/mrpineapples/lenslocked/models"
 	"github.com/mrpineapples/lenslocked/rand"
 	"github.com/mrpineapples/lenslocked/views"
@@ -13,11 +14,12 @@ import (
 // NewUsers is used to create a new Users controller.
 // It will panic if templates are not parsed correctly
 // and should only be used during setup.
-func NewUsers(us models.UserService) *Users {
+func NewUsers(us models.UserService, emailer *email.Client) *Users {
 	return &Users{
 		NewView:   views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
 		service:   us,
+		emailer:   emailer,
 	}
 }
 
@@ -25,6 +27,7 @@ type Users struct {
 	NewView   *views.View
 	LoginView *views.View
 	service   models.UserService
+	emailer   *email.Client
 }
 
 type SignupForm struct {
@@ -54,6 +57,8 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		u.NewView.Render(w, r, vd)
 		return
 	}
+
+	go u.emailer.Welcome(user.Name, user.Email)
 
 	err := u.signIn(w, &user)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/mrpineapples/lenslocked/controllers"
+	"github.com/mrpineapples/lenslocked/email"
 	"github.com/mrpineapples/lenslocked/middleware"
 	"github.com/mrpineapples/lenslocked/models"
 	"github.com/mrpineapples/lenslocked/rand"
@@ -32,10 +33,16 @@ func main() {
 	defer services.Close()
 	services.AutoMigrate()
 
+	mgConfig := appConfig.Mailgun
+	emailer := email.NewClient(
+		email.WithSender("lens-locked support", "support@sandbox986c78adee9944e8b9671c4b76a5a527.mailgun.org"),
+		email.WithMailgun(mgConfig.Domain, mgConfig.APIKey, mgConfig.PublicAPIKey),
+	)
+
 	// declare router first so controllers can use it
 	r := mux.NewRouter()
 	staticC := controllers.NewStatic()
-	usersC := controllers.NewUsers(services.User)
+	usersC := controllers.NewUsers(services.User, emailer)
 	galleriesC := controllers.NewGalleries(services.Gallery, services.Image, r)
 
 	b, err := rand.Bytes(32)
