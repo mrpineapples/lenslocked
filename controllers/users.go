@@ -61,7 +61,11 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/galleries", http.StatusFound)
+	alert := views.Alert{
+		Level:   views.AlertLevelSuccess,
+		Message: "Welcome to lens-locked.com!",
+	}
+	views.RedirectWithAlert(w, r, "/galleries", http.StatusFound, alert)
 }
 
 type LoginForm struct {
