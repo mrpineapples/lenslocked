@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/mrpineapples/lenslocked/context"
 	"github.com/mrpineapples/lenslocked/models"
 	"github.com/mrpineapples/lenslocked/rand"
 	"github.com/mrpineapples/lenslocked/views"
@@ -98,6 +100,25 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/galleries", http.StatusFound)
+}
+
+// Logout deletes a user's remember token and sets a new one on the user resource.
+// POST /logout
+func (u *Users) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name:     "remember_token",
+		Value:    "",
+		Expires:  time.Now(),
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
+
+	user := context.User(r.Context())
+	token, _ := rand.RememberToken()
+	user.Remember = token
+	u.service.Update(user)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // signIn signs the user in via cookies.
