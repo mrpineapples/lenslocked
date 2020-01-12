@@ -35,7 +35,7 @@ func main() {
 
 	mgConfig := appConfig.Mailgun
 	emailer := email.NewClient(
-		email.WithSender("lens-locked support", "support@sandbox986c78adee9944e8b9671c4b76a5a527.mailgun.org"),
+		email.WithSender("lens-locked support", "support@lens-locked.com"),
 		email.WithMailgun(mgConfig.Domain, mgConfig.APIKey, mgConfig.PublicAPIKey),
 	)
 
