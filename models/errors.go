@@ -27,6 +27,9 @@ const (
 	// ErrTitleRequired is returned when a user does not provide a gallery title.
 	ErrTitleRequired modelError = "models: title is required"
 
+	// ErrTokenInvalid is returned when a provided token does not exist.
+	ErrTokenInvalid modelError = "models: token provided is not valid"
+
 	// ErrIDInvalid is returned when an invalid ID is provided.
 	ErrIDInvalid privateError = "models: ID provided was invalid"
 
