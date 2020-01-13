@@ -36,11 +36,20 @@ type SignupForm struct {
 	Password string `schema:"password"`
 }
 
+// New renders the form where a user can create an account.
+// GET /signup
+func (u *Users) New(w http.ResponseWriter, r *http.Request) {
+	var form SignupForm
+	parseURLParams(r, &form)
+	u.NewView.Render(w, r, form)
+}
+
 // Create is used to process the signup form and creates a new account.
 // POST /signup
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	var vd views.Data
 	var form SignupForm
+	vd.Yield = &form
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
 		u.NewView.Render(w, r, vd)
