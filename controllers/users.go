@@ -168,8 +168,12 @@ func (u *Users) InitiateReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: send email with their token and PW reset instructions
-	_ = token
+	err = u.emailer.ResetPw(form.Email, token)
+	if err != nil {
+		vd.SetAlert(err)
+		u.ForgotPwView.Render(w, r, vd)
+		return
+	}
 
 	alert := views.Alert{
 		Level:   views.AlertLevelSuccess,
