@@ -15,8 +15,16 @@
     height: 0.5rem;  
 }
 
+.form-control {
+    font-size: 16px;
+}
+
 @media (min-width: 768px) {
     #logout-btn {
         margin-left: 0px;
+    }
+
+    .form-control {
+        font-size: 14px;
     }
 }
