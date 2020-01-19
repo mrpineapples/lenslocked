@@ -10,7 +10,7 @@
 
     <body>
         {{template "navbar" .}}    
-        <div class="container-fluid">
+        <div class="container-fluid" id="page-container">
             {{if .Alert}}
                 {{template "alert" .Alert}}
             {{end}}

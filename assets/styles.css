@@ -1,4 +1,22 @@
-footer {
-    bottom: 0%;
-    position: fixed;
+#page-container {
+    position: relative;
+    min-height: 85vh;
+    padding-bottom: 0.5rem;
+}
+
+#logout-btn {
+    margin-left: 14px;
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    width: auto;
+    height: 0.5rem;  
+}
+
+@media (min-width: 768px) {
+    #logout-btn {
+        margin-left: 0px;
+    }
 }
