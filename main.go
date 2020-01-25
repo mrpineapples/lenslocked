@@ -12,6 +12,7 @@ import (
 	"github.com/mrpineapples/lenslocked/middleware"
 	"github.com/mrpineapples/lenslocked/models"
 	"github.com/mrpineapples/lenslocked/rand"
+	"golang.org/x/oauth2"
 )
 
 func main() {
@@ -55,6 +56,29 @@ func main() {
 		UserService: services.User,
 	}
 	requireUserMw := middleware.RequireUser{userMw}
+
+	dbxOAuth := &oauth2.Config{
+		ClientID:     appConfig.Dropbox.ID,
+		ClientSecret: appConfig.Dropbox.Secret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  appConfig.Dropbox.AuthURL,
+			TokenURL: appConfig.Dropbox.TokenURL,
+		},
+		RedirectURL: "http://localhost:8000/oauth/dropbox/callback",
+	}
+
+	dbxRedirect := func(w http.ResponseWriter, r *http.Request) {
+		state := csrf.Token(r)
+		url := dbxOAuth.AuthCodeURL(state)
+		fmt.Println("state: ", state)
+		http.Redirect(w, r, url, http.StatusFound)
+	}
+	r.HandleFunc("/oauth/dropbox/connect", dbxRedirect)
+	dbxCallback := func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		fmt.Fprintln(w, "code: ", r.FormValue("code"), " state: ", r.FormValue("state"))
+	}
+	r.HandleFunc("/oauth/dropbox/callback", dbxCallback)
 
 	r.Handle("/", staticC.Home).Methods("GET")
 	r.Handle("/contact", staticC.Contact).Methods("GET")
