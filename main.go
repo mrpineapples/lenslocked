@@ -40,7 +40,9 @@ func main() {
 		email.WithSender("lens-locked support", "support@lens-locked.com"),
 		email.WithMailgun(mgConfig.Domain, mgConfig.APIKey, mgConfig.PublicAPIKey),
 	)
-	dbxOAuth := &oauth2.Config{
+
+	OAuthConfigs := make(map[string]*oauth2.Config)
+	OAuthConfigs[models.OAuthDropbox] = &oauth2.Config{
 		ClientID:     appConfig.Dropbox.ID,
 		ClientSecret: appConfig.Dropbox.Secret,
 		Endpoint: oauth2.Endpoint{
@@ -55,7 +57,7 @@ func main() {
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(services.User, emailer)
 	galleriesC := controllers.NewGalleries(services.Gallery, services.Image, r)
-	oauthsC := controllers.NewOAuths(services.OAuth, dbxOAuth)
+	oauthsC := controllers.NewOAuths(services.OAuth, OAuthConfigs)
 
 	b, err := rand.Bytes(32)
 	if err != nil {
@@ -81,9 +83,9 @@ func main() {
 	r.HandleFunc("/reset", usersC.CompleteReset).Methods("POST")
 
 	// OAuth routes
-	r.HandleFunc("/oauth/dropbox/connect", requireUserMw.ApplyFn(oauthsC.DropboxConnect))
-	r.HandleFunc("/oauth/dropbox/callback", requireUserMw.ApplyFn(oauthsC.DropboxCallback))
-	r.HandleFunc("/oauth/dropbox/test", requireUserMw.ApplyFn(oauthsC.DropboxTest))
+	r.HandleFunc("/oauth/{service:[a-z]+}/connect", requireUserMw.ApplyFn(oauthsC.Connect))
+	r.HandleFunc("/oauth/{service:[a-z]+}/callback", requireUserMw.ApplyFn(oauthsC.Callback))
+	r.HandleFunc("/oauth/{service:[a-z]+}/test", requireUserMw.ApplyFn(oauthsC.DropboxTest))
 
 	// Asset routes
 	assetHandler := http.FileServer(http.Dir("./assets/"))
