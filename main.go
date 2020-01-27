@@ -16,10 +16,10 @@ import (
 )
 
 func main() {
-	boolPtr := flag.Bool("prod", false, "Provide this flag in production. This ensures that a .config file is provided to the application")
+	isProd := flag.Bool("prod", false, "Provide this flag in production. This ensures that a .config file is provided to the application")
 	flag.Parse()
 
-	appConfig := LoadConfig(*boolPtr)
+	appConfig := LoadConfig(*isProd)
 	dbConfig := appConfig.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbConfig.Dialect(), dbConfig.ConnectionInfo()),
@@ -41,6 +41,10 @@ func main() {
 		email.WithMailgun(mgConfig.Domain, mgConfig.APIKey, mgConfig.PublicAPIKey),
 	)
 
+	redirectURL := "http://localhost:8000/oauth/dropbox/callback"
+	if *isProd {
+		redirectURL = "https://lens-locked.com/oauth/dropbox/callback"
+	}
 	OAuthConfigs := make(map[string]*oauth2.Config)
 	OAuthConfigs[models.OAuthDropbox] = &oauth2.Config{
 		ClientID:     appConfig.Dropbox.ID,
@@ -49,7 +53,7 @@ func main() {
 			AuthURL:  appConfig.Dropbox.AuthURL,
 			TokenURL: appConfig.Dropbox.TokenURL,
 		},
-		RedirectURL: "http://localhost:8000/oauth/dropbox/callback",
+		RedirectURL: redirectURL,
 	}
 
 	// declare router first so controllers can use it
