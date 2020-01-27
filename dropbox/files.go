@@ -1,5 +1,9 @@
 package dropbox
 
+// This will be used when making our own dropbox chooser.
+// As of right now we are using the official dropbox chooser
+// and not using this.
+
 import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox"
 	dbxFiles "github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files"
