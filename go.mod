@@ -3,6 +3,7 @@ module github.com/mrpineapples/lenslocked
 go 1.13
 
 require (
+	github.com/dropbox/dropbox-sdk-go-unofficial v5.4.0+incompatible
 	github.com/gobuffalo/envy v1.8.1 // indirect
 	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.3
