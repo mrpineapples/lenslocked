@@ -20,7 +20,7 @@ var templateExt = ".gohtml"
 // NewView creates a View object with a template and a layout
 func NewView(layout string, files ...string) *View {
 	addTemplatePathAndExt(files)
-	files = append(files, layoutFiles()...)
+	files = append(layoutFiles(), files...)
 
 	funcMap := template.FuncMap{
 		"csrfField": func() (template.HTML, error) {

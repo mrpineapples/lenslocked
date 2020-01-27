@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/mrpineapples/lenslocked/context"
@@ -211,6 +213,62 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.Redirect(w, r, url.Path, http.StatusFound)
+}
+
+// ImageViaLink is used to upload images via a link.
+// POST /galleries/:id/images/link
+func (g *Galleries) ImageViaLink(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		http.Error(w, "Gallery not found", http.StatusNotFound)
+		return
+	}
+	var vd views.Data
+	vd.Yield = gallery
+
+	if err := r.ParseForm(); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+	files := r.PostForm["files"]
+
+	var wg sync.WaitGroup
+	wg.Add(len(files))
+	for _, fileURL := range files {
+		go func(imgURL string) {
+			defer wg.Done()
+			resp, err := http.Get(imgURL)
+			if err != nil {
+				log.Println("Failed to download the image from:", imgURL)
+			}
+			defer resp.Body.Close()
+			sections := strings.Split(imgURL, "/")
+			filename := sections[len(sections)-1]
+			decodedFile, err := url.QueryUnescape(filename)
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+			if err := g.imgService.Create(gallery.ID, resp.Body, decodedFile); err != nil {
+				log.Println("Failed to created the image from:", imgURL)
+			}
+		}(fileURL)
+	}
+	wg.Wait()
+
+	url, err := g.router.Get(EditGalleryName).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		log.Println(err)
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+		return
+	}
 	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
